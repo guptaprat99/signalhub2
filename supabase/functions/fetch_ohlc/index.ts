@@ -1,3 +1,4 @@
+/// <reference types="deno.ns" />
 // Supabase Edge Function: Fetch OHLC data from Dhan and store in Supabase
 // Deno runtime
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
