@@ -36,7 +36,7 @@ export default function Dashboard() {
 
       const { data: ohlcData, error } = await supabase
         .from('ohlc_data')
-        .select('*')
+        .select('timestamp, open, high, low, close, volume, timeframe, stocks(symbol)')
         .order('timestamp', { ascending: false })
         .limit(200);
 
@@ -116,9 +116,9 @@ export default function Dashboard() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {data.map((row, idx) => (
-                  <tr key={`${row.symbol}-${row.interval}-${row.timestamp}-${idx}`}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.symbol}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.interval}</td>
+                  <tr key={`${row.stocks?.symbol}-${row.timeframe}-${row.timestamp}-${idx}`}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.stocks?.symbol}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.timeframe}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(row.timestamp).toLocaleString()}
                     </td>
