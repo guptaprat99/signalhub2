@@ -89,6 +89,147 @@ module.exports = require("next/dist/compiled/next-server/app-page.runtime.dev.js
 
 /***/ }),
 
+/***/ "buffer":
+/*!*************************!*\
+  !*** external "buffer" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("buffer");
+
+/***/ }),
+
+/***/ "crypto":
+/*!*************************!*\
+  !*** external "crypto" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("crypto");
+
+/***/ }),
+
+/***/ "events":
+/*!*************************!*\
+  !*** external "events" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("events");
+
+/***/ }),
+
+/***/ "http":
+/*!***********************!*\
+  !*** external "http" ***!
+  \***********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("http");
+
+/***/ }),
+
+/***/ "https":
+/*!************************!*\
+  !*** external "https" ***!
+  \************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("https");
+
+/***/ }),
+
+/***/ "net":
+/*!**********************!*\
+  !*** external "net" ***!
+  \**********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("net");
+
+/***/ }),
+
+/***/ "punycode":
+/*!***************************!*\
+  !*** external "punycode" ***!
+  \***************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("punycode");
+
+/***/ }),
+
+/***/ "stream":
+/*!*************************!*\
+  !*** external "stream" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("stream");
+
+/***/ }),
+
+/***/ "tls":
+/*!**********************!*\
+  !*** external "tls" ***!
+  \**********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("tls");
+
+/***/ }),
+
+/***/ "url":
+/*!**********************!*\
+  !*** external "url" ***!
+  \**********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("url");
+
+/***/ }),
+
+/***/ "zlib":
+/*!***********************!*\
+  !*** external "zlib" ***!
+  \***********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("zlib");
+
+/***/ }),
+
+/***/ "?32c4":
+/*!****************************!*\
+  !*** bufferutil (ignored) ***!
+  \****************************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ "?66e9":
+/*!********************************!*\
+  !*** utf-8-validate (ignored) ***!
+  \********************************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
 /***/ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader.js?name=app%2Fpage&page=%2Fpage&appPaths=%2Fpage&pagePath=private-next-app-dir%2Fpage.tsx&appDir=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D!":
 /*!********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/next/dist/build/webpack/loaders/next-app-loader.js?name=app%2Fpage&page=%2Fpage&appPaths=%2Fpage&pagePath=private-next-app-dir%2Fpage.tsx&appDir=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D! ***!
@@ -110,20 +251,20 @@ eval("Promise.resolve(/*! import() eager */).then(__webpack_require__.t.bind(__w
 
 /***/ }),
 
-/***/ "(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2%2Fnode_modules%2Fnext%2Fdist%2Fclient%2Flink.js&server=true!":
-/*!****************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2%2Fnode_modules%2Fnext%2Fdist%2Fclient%2Flink.js&server=true! ***!
-  \****************************************************************************************************************************************************************************************************************/
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
-
-eval("Promise.resolve(/*! import() eager */).then(__webpack_require__.t.bind(__webpack_require__, /*! ./node_modules/next/dist/client/link.js */ \"(ssr)/./node_modules/next/dist/client/link.js\", 23))//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHNzcikvLi9ub2RlX21vZHVsZXMvbmV4dC9kaXN0L2J1aWxkL3dlYnBhY2svbG9hZGVycy9uZXh0LWZsaWdodC1jbGllbnQtZW50cnktbG9hZGVyLmpzP21vZHVsZXM9JTJGVXNlcnMlMkZwZyUyRkRvY3VtZW50cyUyRlByb2plY3RzJTJGc2lnbmFsaHViMiUyRm5vZGVfbW9kdWxlcyUyRm5leHQlMkZkaXN0JTJGY2xpZW50JTJGbGluay5qcyZzZXJ2ZXI9dHJ1ZSEiLCJtYXBwaW5ncyI6IkFBQUEiLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly9zaWduYWxodWIyLz9iZmI3Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCgvKiB3ZWJwYWNrTW9kZTogXCJlYWdlclwiICovIFwiL1VzZXJzL3BnL0RvY3VtZW50cy9Qcm9qZWN0cy9zaWduYWxodWIyL25vZGVfbW9kdWxlcy9uZXh0L2Rpc3QvY2xpZW50L2xpbmsuanNcIikiXSwibmFtZXMiOltdLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2%2Fnode_modules%2Fnext%2Fdist%2Fclient%2Flink.js&server=true!\n");
-
-/***/ }),
-
 /***/ "(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2%2Fstyles%2Fglobals.css&server=true!":
 /*!***************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2%2Fstyles%2Fglobals.css&server=true! ***!
   \***************************************************************************************************************************************************************************************/
+/***/ (() => {
+
+
+
+/***/ }),
+
+/***/ "(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?server=true!":
+/*!******************************************************************************************************!*\
+  !*** ./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?server=true! ***!
+  \******************************************************************************************************/
 /***/ (() => {
 
 
@@ -159,7 +300,18 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ Home)\n/* harmony export */ });\n/* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-dev-runtime */ \"(rsc)/./node_modules/next/dist/server/future/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.js\");\n/* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__);\n/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! next/link */ \"(rsc)/./node_modules/next/link.js\");\n/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(next_link__WEBPACK_IMPORTED_MODULE_1__);\n\n\nfunction Home() {\n    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"main\", {\n        className: \"flex flex-col items-center justify-center h-screen bg-black\",\n        children: [\n            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"h1\", {\n                className: \"text-3xl font-bold text-white mb-8\",\n                children: \"Welcome to SignalHub2!\"\n            }, void 0, false, {\n                fileName: \"/Users/pg/Documents/Projects/signalhub2/app/page.tsx\",\n                lineNumber: 6,\n                columnNumber: 7\n            }, this),\n            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)((next_link__WEBPACK_IMPORTED_MODULE_1___default()), {\n                href: \"/dashboard\",\n                className: \"px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors\",\n                children: \"View Dashboard\"\n            }, void 0, false, {\n                fileName: \"/Users/pg/Documents/Projects/signalhub2/app/page.tsx\",\n                lineNumber: 7,\n                columnNumber: 7\n            }, this)\n        ]\n    }, void 0, true, {\n        fileName: \"/Users/pg/Documents/Projects/signalhub2/app/page.tsx\",\n        lineNumber: 5,\n        columnNumber: 5\n    }, this);\n}\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHJzYykvLi9hcHAvcGFnZS50c3giLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7O0FBQTRCO0FBRWIsU0FBU0M7SUFDdEIscUJBQ0UsOERBQUNDO1FBQUtDLFdBQVU7OzBCQUNkLDhEQUFDQztnQkFBR0QsV0FBVTswQkFBcUM7Ozs7OzswQkFDbkQsOERBQUNILGtEQUFJQTtnQkFDSEssTUFBSztnQkFDTEYsV0FBVTswQkFDWDs7Ozs7Ozs7Ozs7O0FBS1AiLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly9zaWduYWxodWIyLy4vYXBwL3BhZ2UudHN4Pzc2MDMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IExpbmsgZnJvbSAnbmV4dC9saW5rJ1xuXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBIb21lKCkge1xuICByZXR1cm4gKFxuICAgIDxtYWluIGNsYXNzTmFtZT1cImZsZXggZmxleC1jb2wgaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGgtc2NyZWVuIGJnLWJsYWNrXCI+XG4gICAgICA8aDEgY2xhc3NOYW1lPVwidGV4dC0zeGwgZm9udC1ib2xkIHRleHQtd2hpdGUgbWItOFwiPldlbGNvbWUgdG8gU2lnbmFsSHViMiE8L2gxPlxuICAgICAgPExpbmsgXG4gICAgICAgIGhyZWY9XCIvZGFzaGJvYXJkXCIgXG4gICAgICAgIGNsYXNzTmFtZT1cInB4LTQgcHktMiBiZy1ibHVlLTYwMCB0ZXh0LXdoaXRlIHJvdW5kZWQgaG92ZXI6YmctYmx1ZS03MDAgdHJhbnNpdGlvbi1jb2xvcnNcIlxuICAgICAgPlxuICAgICAgICBWaWV3IERhc2hib2FyZFxuICAgICAgPC9MaW5rPlxuICAgIDwvbWFpbj5cbiAgKTtcbn0gIl0sIm5hbWVzIjpbIkxpbmsiLCJIb21lIiwibWFpbiIsImNsYXNzTmFtZSIsImgxIiwiaHJlZiJdLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///(rsc)/./app/page.tsx\n");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ HomePage)\n/* harmony export */ });\n/* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-dev-runtime */ \"(rsc)/./node_modules/next/dist/server/future/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.js\");\n/* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__);\n/* harmony import */ var _lib_supabase__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/lib/supabase */ \"(rsc)/./lib/supabase.ts\");\n\n\nasync function HomePage() {\n    const { data: stocks, error } = await _lib_supabase__WEBPACK_IMPORTED_MODULE_1__.supabase.from(\"stocks\").select(\"symbol, name\");\n    if (error) {\n        return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"div\", {\n            children: [\n                \"Error: \",\n                error.message\n            ]\n        }, void 0, true, {\n            fileName: \"/Users/pg/Documents/Projects/signalhub2/app/page.tsx\",\n            lineNumber: 7,\n            columnNumber: 12\n        }, this);\n    }\n    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"main\", {\n        className: \"p-4\",\n        children: [\n            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"h1\", {\n                className: \"text-xl font-bold mb-4\",\n                children: \"Tracked Stocks\"\n            }, void 0, false, {\n                fileName: \"/Users/pg/Documents/Projects/signalhub2/app/page.tsx\",\n                lineNumber: 12,\n                columnNumber: 7\n            }, this),\n            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"ul\", {\n                className: \"space-y-2\",\n                children: stocks?.map((stock)=>/*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"li\", {\n                        className: \"border p-2 rounded\",\n                        children: [\n                            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"strong\", {\n                                children: stock.symbol\n                            }, void 0, false, {\n                                fileName: \"/Users/pg/Documents/Projects/signalhub2/app/page.tsx\",\n                                lineNumber: 16,\n                                columnNumber: 13\n                            }, this),\n                            \": \",\n                            stock.name\n                        ]\n                    }, stock.symbol, true, {\n                        fileName: \"/Users/pg/Documents/Projects/signalhub2/app/page.tsx\",\n                        lineNumber: 15,\n                        columnNumber: 11\n                    }, this))\n            }, void 0, false, {\n                fileName: \"/Users/pg/Documents/Projects/signalhub2/app/page.tsx\",\n                lineNumber: 13,\n                columnNumber: 7\n            }, this)\n        ]\n    }, void 0, true, {\n        fileName: \"/Users/pg/Documents/Projects/signalhub2/app/page.tsx\",\n        lineNumber: 11,\n        columnNumber: 5\n    }, this);\n}\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHJzYykvLi9hcHAvcGFnZS50c3giLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7QUFBeUM7QUFFMUIsZUFBZUM7SUFDNUIsTUFBTSxFQUFFQyxNQUFNQyxNQUFNLEVBQUVDLEtBQUssRUFBRSxHQUFHLE1BQU1KLG1EQUFRQSxDQUFDSyxJQUFJLENBQUMsVUFBVUMsTUFBTSxDQUFDO0lBRXJFLElBQUlGLE9BQU87UUFDVCxxQkFBTyw4REFBQ0c7O2dCQUFJO2dCQUFRSCxNQUFNSSxPQUFPOzs7Ozs7O0lBQ25DO0lBRUEscUJBQ0UsOERBQUNDO1FBQUtDLFdBQVU7OzBCQUNkLDhEQUFDQztnQkFBR0QsV0FBVTswQkFBeUI7Ozs7OzswQkFDdkMsOERBQUNFO2dCQUFHRixXQUFVOzBCQUNYUCxRQUFRVSxJQUFJLENBQUNDLHNCQUNaLDhEQUFDQzt3QkFBc0JMLFdBQVU7OzBDQUMvQiw4REFBQ007MENBQVFGLE1BQU1HLE1BQU07Ozs7Ozs0QkFBVTs0QkFBR0gsTUFBTUksSUFBSTs7dUJBRHJDSixNQUFNRyxNQUFNOzs7Ozs7Ozs7Ozs7Ozs7O0FBTy9CIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vc2lnbmFsaHViMi8uL2FwcC9wYWdlLnRzeD83NjAzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IHN1cGFiYXNlIH0gZnJvbSAnQC9saWIvc3VwYWJhc2UnXG5cbmV4cG9ydCBkZWZhdWx0IGFzeW5jIGZ1bmN0aW9uIEhvbWVQYWdlKCkge1xuICBjb25zdCB7IGRhdGE6IHN0b2NrcywgZXJyb3IgfSA9IGF3YWl0IHN1cGFiYXNlLmZyb20oJ3N0b2NrcycpLnNlbGVjdCgnc3ltYm9sLCBuYW1lJylcblxuICBpZiAoZXJyb3IpIHtcbiAgICByZXR1cm4gPGRpdj5FcnJvcjoge2Vycm9yLm1lc3NhZ2V9PC9kaXY+XG4gIH1cblxuICByZXR1cm4gKFxuICAgIDxtYWluIGNsYXNzTmFtZT1cInAtNFwiPlxuICAgICAgPGgxIGNsYXNzTmFtZT1cInRleHQteGwgZm9udC1ib2xkIG1iLTRcIj5UcmFja2VkIFN0b2NrczwvaDE+XG4gICAgICA8dWwgY2xhc3NOYW1lPVwic3BhY2UteS0yXCI+XG4gICAgICAgIHtzdG9ja3M/Lm1hcCgoc3RvY2spID0+IChcbiAgICAgICAgICA8bGkga2V5PXtzdG9jay5zeW1ib2x9IGNsYXNzTmFtZT1cImJvcmRlciBwLTIgcm91bmRlZFwiPlxuICAgICAgICAgICAgPHN0cm9uZz57c3RvY2suc3ltYm9sfTwvc3Ryb25nPjoge3N0b2NrLm5hbWV9XG4gICAgICAgICAgPC9saT5cbiAgICAgICAgKSl9XG4gICAgICA8L3VsPlxuICAgIDwvbWFpbj5cbiAgKVxufSAiXSwibmFtZXMiOlsic3VwYWJhc2UiLCJIb21lUGFnZSIsImRhdGEiLCJzdG9ja3MiLCJlcnJvciIsImZyb20iLCJzZWxlY3QiLCJkaXYiLCJtZXNzYWdlIiwibWFpbiIsImNsYXNzTmFtZSIsImgxIiwidWwiLCJtYXAiLCJzdG9jayIsImxpIiwic3Ryb25nIiwic3ltYm9sIiwibmFtZSJdLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///(rsc)/./app/page.tsx\n");
+
+/***/ }),
+
+/***/ "(rsc)/./lib/supabase.ts":
+/*!*************************!*\
+  !*** ./lib/supabase.ts ***!
+  \*************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   supabase: () => (/* binding */ supabase)\n/* harmony export */ });\n/* harmony import */ var _supabase_supabase_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @supabase/supabase-js */ \"(rsc)/./node_modules/@supabase/supabase-js/dist/module/index.js\");\n// lib/supabase.ts\n\nconst supabaseUrl = \"https://mxdyomqyvrwytuqzpvwk.supabase.co\";\nconst supabaseAnonKey = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14ZHlvbXF5dnJ3eXR1cXpwdndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3NDU2MDQsImV4cCI6MjA2ODMyMTYwNH0.CIlrapAL257aC8gYPItCM0QJXS4MhbP5IJp2UcZCCSA\";\nconst supabase = (0,_supabase_supabase_js__WEBPACK_IMPORTED_MODULE_0__.createClient)(supabaseUrl, supabaseAnonKey);\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHJzYykvLi9saWIvc3VwYWJhc2UudHMiLCJtYXBwaW5ncyI6Ijs7Ozs7QUFBQSxrQkFBa0I7QUFFa0M7QUFFcEQsTUFBTUMsY0FBY0MsMENBQW9DO0FBQ3hELE1BQU1HLGtCQUFrQkgsa05BQXlDO0FBRTFELE1BQU1LLFdBQVdQLG1FQUFZQSxDQUFDQyxhQUFhSSxpQkFBZ0IiLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly9zaWduYWxodWIyLy4vbGliL3N1cGFiYXNlLnRzP2M5OWYiXSwic291cmNlc0NvbnRlbnQiOlsiLy8gbGliL3N1cGFiYXNlLnRzXG5cbmltcG9ydCB7IGNyZWF0ZUNsaWVudCB9IGZyb20gJ0BzdXBhYmFzZS9zdXBhYmFzZS1qcydcblxuY29uc3Qgc3VwYWJhc2VVcmwgPSBwcm9jZXNzLmVudi5ORVhUX1BVQkxJQ19TVVBBQkFTRV9VUkwhXG5jb25zdCBzdXBhYmFzZUFub25LZXkgPSBwcm9jZXNzLmVudi5ORVhUX1BVQkxJQ19TVVBBQkFTRV9BTk9OX0tFWSFcblxuZXhwb3J0IGNvbnN0IHN1cGFiYXNlID0gY3JlYXRlQ2xpZW50KHN1cGFiYXNlVXJsLCBzdXBhYmFzZUFub25LZXkpICJdLCJuYW1lcyI6WyJjcmVhdGVDbGllbnQiLCJzdXBhYmFzZVVybCIsInByb2Nlc3MiLCJlbnYiLCJORVhUX1BVQkxJQ19TVVBBQkFTRV9VUkwiLCJzdXBhYmFzZUFub25LZXkiLCJORVhUX1BVQkxJQ19TVVBBQkFTRV9BTk9OX0tFWSIsInN1cGFiYXNlIl0sInNvdXJjZVJvb3QiOiIifQ==\n//# sourceURL=webpack-internal:///(rsc)/./lib/supabase.ts\n");
 
 /***/ })
 
@@ -170,7 +322,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 var __webpack_require__ = require("../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, ["vendor-chunks/next","vendor-chunks/@swc"], () => (__webpack_exec__("(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader.js?name=app%2Fpage&page=%2Fpage&appPaths=%2Fpage&pagePath=private-next-app-dir%2Fpage.tsx&appDir=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D!")));
+var __webpack_exports__ = __webpack_require__.X(0, ["vendor-chunks/next","vendor-chunks/@supabase","vendor-chunks/tr46","vendor-chunks/ws","vendor-chunks/whatwg-url","vendor-chunks/webidl-conversions","vendor-chunks/@swc","vendor-chunks/isows"], () => (__webpack_exec__("(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader.js?name=app%2Fpage&page=%2Fpage&appPaths=%2Fpage&pagePath=private-next-app-dir%2Fpage.tsx&appDir=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2FUsers%2Fpg%2FDocuments%2FProjects%2Fsignalhub2&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D!")));
 module.exports = __webpack_exports__;
 
 })();
