@@ -1,0 +1,9 @@
+# Supabase Edge Function Cron Schedule
+# Runs every 5 minutes, Monday to Friday, 03:45–10:00 UTC (09:15–15:30 IST)
+
+version: v1
+schedules:
+  - function: fetch_ohlc
+    cron: '*/5 3-9 * * 1-5'   # Every 5 min, 03:00–09:59 UTC, Mon–Fri
+  - function: fetch_ohlc
+    cron: '0,5,10,15,20,25,30,35,40,45,50,55 10 * * 1-5' # 10:00–10:55 UTC, Mon–Fri (to include 10:00)
