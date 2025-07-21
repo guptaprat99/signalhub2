@@ -1,15 +1,22 @@
-import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
-export default function Home() {
+export default async function HomePage() {
+  const { data: stocks, error } = await supabase.from('stocks').select('symbol, name')
+
+  if (error) {
+    return <div>Error: {error.message}</div>
+  }
+
   return (
-    <main className="flex flex-col items-center justify-center h-screen bg-black">
-      <h1 className="text-3xl font-bold text-white mb-8">Welcome to SignalHub2!</h1>
-      <Link 
-        href="/dashboard" 
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-      >
-        View Dashboard
-      </Link>
+    <main className="p-4">
+      <h1 className="text-xl font-bold mb-4">Tracked Stocks</h1>
+      <ul className="space-y-2">
+        {stocks?.map((stock) => (
+          <li key={stock.symbol} className="border p-2 rounded">
+            <strong>{stock.symbol}</strong>: {stock.name}
+          </li>
+        ))}
+      </ul>
     </main>
-  );
+  )
 } 
