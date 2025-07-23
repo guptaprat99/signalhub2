@@ -39,15 +39,42 @@ function getLastNTradingDays(n, holidays = []) {
   return days;
 }
 
+// Lookup: Candles per day for each interval
+const CANDLES_PER_DAY: Record<string, number> = {
+  "5": 75,   // 5-min interval: 75 candles per day (9:15-15:30 IST)
+  "60": 7,   // 1-hr interval: 7 candles per day (9:15-15:30 IST)
+};
+
 // Helper: Get fromDate and toDate for last N candles (5-min interval)
 function getDateRangeForLastNCandles(nCandles, interval, holidays = []) {
-  // For 5-min interval, 75 candles per trading day (9:15-15:30 IST)
-  const candlesPerDay = interval === "5" ? 75 : 75; // adjust if more intervals later
+  const candlesPerDay = CANDLES_PER_DAY[interval];
+  if (!candlesPerDay) throw new Error(`Unsupported interval: ${interval}`);
   const daysNeeded = Math.ceil(nCandles / candlesPerDay) + 2; // +2 for safety
   const tradingDays = getLastNTradingDays(daysNeeded, holidays);
   const fromDate = tradingDays[0];
   const toDate = tradingDays[tradingDays.length - 1];
   return { fromDate, toDate, tradingDays };
+}
+
+function getFromDateForNCandles(nCandles, interval, holidays = []) {
+  const candlesPerDay = CANDLES_PER_DAY[interval];
+  if (!candlesPerDay) throw new Error(`Unsupported interval: ${interval}`);
+  const tradingDaysNeeded = Math.ceil(nCandles / candlesPerDay);
+  const tradingDays = getLastNTradingDays(tradingDaysNeeded, holidays);
+  // Dhan expects IST datetime in 'YYYY-MM-DD HH:mm:ss' format, market open 09:15:00 IST
+  const fromDate = `${tradingDays[0]} 09:15:00`;
+  return fromDate;
+}
+
+function getToDateIST() {
+  // Today at 15:30:00 IST in 'YYYY-MM-DD HH:mm:ss' format
+  const now = new Date();
+  // Convert to IST
+  const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+  const yyyy = ist.getUTCFullYear();
+  const mm = String(ist.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(ist.getUTCDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} 15:30:00`;
 }
 
 serve(async (req) => {
@@ -73,7 +100,7 @@ serve(async (req) => {
     }
 
     // 2. For each stock, fetch OHLC data for the interval(s)
-    const intervals: string[] = ["5"]; // Only 5-min for now, support more later
+    const intervals: string[] = ["5", "60"]; // 5-min and 1hr intervals
     const nCandles = 210;
     let totalCandles = 0;
     let errors: any[] = [];
@@ -90,8 +117,11 @@ serve(async (req) => {
       if (!stock.security_id || !stock.exchange_segment || !stock.instrument) continue;
       for (const interval of intervals) {
         try {
-          // Calculate date range to cover at least nCandles
-          const { fromDate, toDate, tradingDays } = getDateRangeForLastNCandles(nCandles, interval, holidays);
+          // Calculate fromDate for exactly nCandles (skipping weekends/holidays)
+          const fromDate = getFromDateForNCandles(nCandles, interval, holidays);
+          const toDate = getToDateIST();
+          const tradingDays = getLastNTradingDays(Math.ceil(nCandles / CANDLES_PER_DAY[interval]), holidays);
+
           // Fetch candles from Dhan
           const candles = await fetchOHLC({
             dhanToken: DHAN_API_TOKEN,
@@ -130,7 +160,8 @@ serve(async (req) => {
           // Prepare data for upsert
           const rows = lastCandles.map((candle) => ({
             stock_id: stock.id,
-            timestamp: new Date(candle.timestamp * 1000).toISOString(), // convert UNIX seconds to ISO string
+            // Store as UTC ISO string (no offset)
+            timestamp: new Date(candle.timestamp * 1000).toISOString(),
             open: candle.open,
             high: candle.high,
             low: candle.low,

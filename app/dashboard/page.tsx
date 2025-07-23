@@ -22,6 +22,12 @@ type OHLCData = {
   volume: number;
 };
 
+// Timeframe display mapping
+const TIMEFRAME_LABELS: Record<string, string> = {
+  '5': '5min',
+  '60': '1hr',
+};
+
 export default function Dashboard() {
   const [data, setData] = useState<OHLCData[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -29,6 +35,8 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [symbolFilter, setSymbolFilter] = useState('');
+  const [timeframeFilter, setTimeframeFilter] = useState('');
 
   // Fetch OHLC data from Supabase
   const fetchData = async () => {
@@ -40,7 +48,7 @@ export default function Dashboard() {
         .from('ohlc_data')
         .select('timestamp, open, high, low, close, volume, timeframe, stocks(symbol)')
         .order('timestamp', { ascending: false })
-        .limit(200);
+        .limit(800);
 
       if (error) throw error;
       setData(ohlcData || []);
@@ -73,6 +81,13 @@ export default function Dashboard() {
       setRefreshing(false);
     }
   };
+
+  // Compute filtered data
+  const filteredData = data.filter(row => {
+    const symbolMatch = symbolFilter === '' || (row.stocks?.symbol || '').toLowerCase().includes(symbolFilter.toLowerCase());
+    const timeframeMatch = timeframeFilter === '' || row.timeframe === timeframeFilter;
+    return symbolMatch && timeframeMatch;
+  });
 
   // Set up auto-refresh
   useEffect(() => {
@@ -137,6 +152,35 @@ export default function Dashboard() {
         )}
 
         {/* Data table */}
+        {/* Filters */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          <div>
+            <label htmlFor="symbolFilter" className="block text-xs font-medium text-gray-700 mb-1">Filter by Symbol</label>
+            <input
+              id="symbolFilter"
+              type="text"
+              value={symbolFilter}
+              onChange={e => setSymbolFilter(e.target.value)}
+              placeholder="e.g. RELIANCE"
+              className="px-2 py-1 border rounded text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="timeframeFilter" className="block text-xs font-medium text-gray-700 mb-1">Filter by Timeframe</label>
+            <select
+              id="timeframeFilter"
+              value={timeframeFilter}
+              onChange={e => setTimeframeFilter(e.target.value)}
+              className="px-2 py-1 border rounded text-sm"
+            >
+              <option value="">All</option>
+              {/* Dynamically populate unique timeframes from data */}
+              {[...new Set(data.map(row => row.timeframe))].map(tf => (
+                <option key={tf} value={tf}>{TIMEFRAME_LABELS[tf] || tf}</option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="bg-white shadow-sm rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -153,12 +197,12 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {data.map((row, idx) => (
+                {filteredData.map((row, idx) => (
                   <tr key={`${row.stocks?.symbol}-${row.timeframe}-${row.timestamp}-${idx}`}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.stocks?.symbol}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.timeframe}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{TIMEFRAME_LABELS[row.timeframe] || row.timeframe}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(row.timestamp).toLocaleString()}
+                      {new Date(row.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{row.open.toFixed(2)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{row.high.toFixed(2)}</td>
