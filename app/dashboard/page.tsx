@@ -27,6 +27,8 @@ export default function Dashboard() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   // Fetch OHLC data from Supabase
   const fetchData = async () => {
@@ -46,6 +48,29 @@ export default function Dashboard() {
       setError(err.message || 'Failed to fetch data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Call Edge Function to refresh data
+  const refreshData = async () => {
+    setRefreshing(true);
+    setRefreshError(null);
+    try {
+      const res = await fetch('https://mxdyomqyvrwytuqzpvwk.functions.supabase.co/fetch_ohlc', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+        },
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Failed to refresh data');
+      }
+      await fetchData(); // Refresh table data after successful update
+    } catch (err: any) {
+      setRefreshError(err.message || 'Failed to refresh data');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -83,8 +108,21 @@ export default function Dashboard() {
             <label htmlFor="autoRefresh" className="text-sm text-gray-600">
               Auto-refresh (2 min)
             </label>
+            <button
+              onClick={refreshData}
+              disabled={refreshing}
+              className="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              {refreshing ? 'Refreshing...' : 'Refresh Data'}
+            </button>
           </div>
         </div>
+        {/* Refresh error message */}
+        {refreshError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            {refreshError}
+          </div>
+        )}
 
         {/* Error message */}
         {error && (
