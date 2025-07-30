@@ -54,10 +54,12 @@ serve(async (_req) => {
     console.log("Fetching previous day closes...");
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     const previousDayRes = await supabaseFetch(
-      `ohlc_data?select=stock_id,timestamp,close&timestamp.lt.${encodeURIComponent(today)}&order=timestamp.desc`
+      `ohlc_data?select=stock_id,timestamp,close&timestamp=lt.${today}T00:00:00&order=timestamp.desc`
     );
     if (!previousDayRes.ok) throw new Error("Failed to fetch previous day closes");
     const allPreviousDayPrices = await previousDayRes.json();
+    
+    console.log(`Found ${allPreviousDayPrices.length} previous day price records`);
     
     // Group by stock_id and get the latest before today for each
     const previousDayMap = new Map();
@@ -66,6 +68,9 @@ serve(async (_req) => {
         previousDayMap.set(price.stock_id, price);
       }
     }
+    
+    console.log(`Found previous day closes for ${previousDayMap.size} stocks`);
+    console.log("Previous day closes:", Array.from(previousDayMap.entries()).map(([id, price]) => `${id}: ${price.close} at ${price.timestamp}`));
     
     // 3. Latest trend per symbol per timeframe
     console.log("Fetching latest trends...");
@@ -106,7 +111,6 @@ serve(async (_req) => {
       }
     }
     
-    
     // 5. Build the final data for strategy_9_30_ema table
     console.log("Building strategy data...");
     const strategyData = [];
@@ -131,6 +135,9 @@ serve(async (_req) => {
         // Calculate percentage change with full precision, then round to 2 decimals (matching SQL logic)
         const rawPercentage = ((cmp - prevClose) / prevClose) * 100;
         prcntChange = Math.round(rawPercentage * 100) / 100; // Round to 2 decimal places
+        console.log(`${symbol}: CMP=${cmp}, Prev=${prevClose}, Change=${prcntChange}%`);
+      } else {
+        console.log(`${symbol}: No previous day data found`);
       }
       
       // Get trends for 5min and 60min timeframes

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { getPipelineStatus, triggerPipeline, formatTimestamp } from '../../utils/pipelineStatus';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,7 +26,9 @@ export default function EMATrendPage() {
   const [strategyData, setStrategyData] = useState<StrategyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [pipelineStatus, setPipelineStatus] = useState<{ lastRunAt: string | null; isRunning: boolean }>({ lastRunAt: null, isRunning: false });
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   const fetchStrategyData = async () => {
     try {
@@ -33,11 +36,10 @@ export default function EMATrendPage() {
       const { data, error } = await supabase
         .from('strategy_9_30_ema')
         .select('*')
-        .order('crossover_5min', { ascending: false, nullsLast: true });
+        .order('crossover_5min', { ascending: false });
 
       if (error) throw error;
       setStrategyData(data || []);
-      setLastRefresh(new Date());
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -46,29 +48,42 @@ export default function EMATrendPage() {
   };
 
   const refreshData = async () => {
-    await fetchStrategyData();
+    setRefreshing(true);
+    setRefreshError(null);
+    try {
+      const result = await triggerPipeline();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to refresh data');
+      }
+      
+      // Wait a bit for pipeline to complete, then refresh data
+      setTimeout(async () => {
+        await fetchStrategyData();
+        await updatePipelineStatus();
+      }, 2000);
+    } catch (err: any) {
+      setRefreshError(err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const updatePipelineStatus = async () => {
+    const status = await getPipelineStatus();
+    setPipelineStatus(status);
   };
 
   useEffect(() => {
     fetchStrategyData();
+    updatePipelineStatus();
     
     // Auto-refresh every 2 minutes
-    const interval = setInterval(fetchStrategyData, 2 * 60 * 1000);
+    const interval = setInterval(() => {
+      fetchStrategyData();
+      updatePipelineStatus();
+    }, 2 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
-
-  const formatTimestamp = (timestamp: string) => {
-    if (!timestamp) return '-';
-    return new Date(timestamp).toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
 
   const formatPercentage = (value: number | null) => {
     if (value === null) return '-';
@@ -109,20 +124,35 @@ export default function EMATrendPage() {
             </p>
           </div>
           <div className="flex items-center space-x-4">
-            {lastRefresh && (
-              <div className="text-sm text-gray-500">
-                Last updated: {lastRefresh.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })}
-              </div>
-            )}
+            <div className="text-sm text-gray-500">
+              Last updated: {formatTimestamp(pipelineStatus.lastRunAt)}
+            </div>
             <button
               onClick={refreshData}
-              disabled={loading}
+              disabled={refreshing}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Refreshing...' : 'Refresh'}
+              {refreshing ? 'Processing...' : 'Refresh'}
             </button>
           </div>
         </div>
+
+        {/* Refresh Error Message */}
+        {refreshError && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Refresh Error</h3>
+                <div className="mt-2 text-sm text-red-700">{refreshError}</div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
@@ -187,7 +217,7 @@ export default function EMATrendPage() {
                         {row.symbol}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ₹{row.cmp?.toFixed(2)}
+                        ₹{row.cmp.toFixed(2)}
                       </td>
                       <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getPercentageColor(row.prcnt_change)}`}>
                         {formatPercentage(row.prcnt_change)}
@@ -213,11 +243,6 @@ export default function EMATrendPage() {
               </tbody>
             </table>
           </div>
-        </div>
-
-        {/* Summary */}
-        <div className="mt-6 text-sm text-gray-500">
-          Total records: {strategyData.length}
         </div>
       </div>
     </div>
