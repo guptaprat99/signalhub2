@@ -1,22 +1,22 @@
-import { supabase } from '@/lib/supabase'
+'use client';
 
-export default async function HomePage() {
-  const { data: stocks, error } = await supabase.from('stocks').select('symbol, name')
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-  if (error) {
-    return <div>Error: {error.message}</div>
-  }
+export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to OHLC page
+    router.push('/ohlc');
+  }, [router]);
 
   return (
-    <main className="p-4">
-      <h1 className="text-xl font-bold mb-4">Tracked Stocks</h1>
-      <ul className="space-y-2">
-        {stocks?.map((stock) => (
-          <li key={stock.symbol} className="border p-2 rounded">
-            <strong>{stock.symbol}</strong>: {stock.name}
-          </li>
-        ))}
-      </ul>
-    </main>
-  )
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Redirecting to OHLC Data...</p>
+      </div>
+    </div>
+  );
 } 
