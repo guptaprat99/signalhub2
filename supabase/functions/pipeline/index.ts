@@ -5,6 +5,21 @@ import { updateProcessingState } from "../shared/processing_state.ts";
 
 const SUPABASE_FUNCTIONS_URL = "https://mxdyomqyvrwytuqzpvwk.functions.supabase.co";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+
+// Helper: Supabase fetch with auth headers
+function supabaseFetch(path: string, options: RequestInit = {}) {
+  return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      "apikey": SERVICE_ROLE_KEY,
+      "Authorization": `Bearer ${SERVICE_ROLE_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": "resolution=merge-duplicates",
+    },
+  });
+}
 
 async function callFunction(path: string) {
   const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/${path}`, {
@@ -19,15 +34,19 @@ async function callFunction(path: string) {
 
 async function updatePipelineStatus(success: boolean, error?: string) {
   try {
+    // Use current time as the pipeline timestamp, not the latest data timestamp
+    // This ensures functions will fetch fresh data when pipeline runs
+    const currentTimestamp = new Date().toISOString();
+    
     // Use the shared updateProcessingState function
     await updateProcessingState(
       'pipeline',
       0, // Global pipeline status
       'global',
-      new Date().toISOString(),
+      currentTimestamp, // Use current time, not data timestamp
       success ? 'completed' : 'failed'
     );
-    console.log('Pipeline status updated successfully');
+    console.log('Pipeline status updated successfully with timestamp:', currentTimestamp);
   } catch (error) {
     console.error('Error updating pipeline status:', error);
   }

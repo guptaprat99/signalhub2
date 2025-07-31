@@ -2,6 +2,7 @@
 // Supabase Edge Function: Populate 9-30 EMA strategy table
 // Deno runtime
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getPipelineLastProcessedTimestamp } from "../shared/processing_state.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -22,15 +23,31 @@ function supabaseFetch(path: string, options: RequestInit = {}) {
 
 serve(async (_req) => {
   try {
-    console.log("Starting populate_9_30_ema_strategy function...");
+    console.log("Starting populate_9_30_ema_strategy with pipeline-based delta processing...");
     
-    // 1. Get latest CMP (today's close) per symbol
-    console.log("Fetching latest prices per symbol...");
+    // Get the pipeline's last processed timestamp (single source of truth)
+    const lastProcessedTimestamp = await getPipelineLastProcessedTimestamp();
+    console.log(`Using pipeline's last processed timestamp: ${lastProcessedTimestamp}`);
+    
+    // 1. Get latest CMP (today's close) per symbol since last pipeline run
+    console.log("Fetching latest prices per symbol since last pipeline run...");
     const latestPricesRes = await supabaseFetch(
-      `ohlc_data?select=stock_id,timestamp,close&order=timestamp.desc`
+      `ohlc_data?select=stock_id,timestamp,close&timestamp=gt.${encodeURIComponent(lastProcessedTimestamp)}&order=timestamp.desc`
     );
     if (!latestPricesRes.ok) throw new Error("Failed to fetch latest prices");
     const allLatestPrices = await latestPricesRes.json();
+    
+    if (allLatestPrices.length === 0) {
+      console.log("No new OHLC data since last pipeline run, skipping strategy population");
+      return new Response(JSON.stringify({ success: true, message: "No new data to process" }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+        },
+      });
+    }
     
     // Group by stock_id and get the latest for each
     const latestPricesMap = new Map();
@@ -70,12 +87,11 @@ serve(async (_req) => {
     }
     
     console.log(`Found previous day closes for ${previousDayMap.size} stocks`);
-    console.log("Previous day closes:", Array.from(previousDayMap.entries()).map(([id, price]) => `${id}: ${price.close} at ${price.timestamp}`));
     
-    // 3. Latest trend per symbol per timeframe
-    console.log("Fetching latest trends...");
+    // 3. Latest trend per symbol per timeframe since last pipeline run
+    console.log("Fetching latest trends since last pipeline run...");
     const trendsRes = await supabaseFetch(
-      `9_30_ema_trend?select=stock_id,timeframe,trend,timestamp&order=timestamp.desc`
+      `9_30_ema_trend?select=stock_id,timeframe,trend,timestamp&timestamp=gt.${encodeURIComponent(lastProcessedTimestamp)}&order=timestamp.desc`
     );
     if (!trendsRes.ok) throw new Error("Failed to fetch trends");
     const allTrends = await trendsRes.json();
@@ -89,15 +105,15 @@ serve(async (_req) => {
       }
     }
     
-    // 4. Latest crossover per symbol per timeframe (matching SQL logic)
-    console.log("Fetching all crossovers with symbols...");
+    // 4. Latest crossover per symbol per timeframe since last pipeline run
+    console.log("Fetching crossovers since last pipeline run...");
     const crossoversRes = await supabaseFetch(
-      `9_30_ema_trend?select=stock_id,timeframe,timestamp,crossover,stocks(symbol)&crossover.not.is.null&order=timestamp.desc`
+      `9_30_ema_trend?select=stock_id,timeframe,timestamp,crossover,stocks(symbol)&crossover.not.is.null&timestamp=gt.${encodeURIComponent(lastProcessedTimestamp)}&order=timestamp.desc`
     );
     if (!crossoversRes.ok) throw new Error("Failed to fetch crossovers");
     const allCrossovers = await crossoversRes.json();
 
-    console.log(`Found ${allCrossovers.length} crossovers in database`);
+    console.log(`Found ${allCrossovers.length} new crossovers since last pipeline run`);
 
     // Group by symbol + timeframe, and take latest per group (matching SQL DISTINCT ON logic)
     const crossoversMap = new Map();

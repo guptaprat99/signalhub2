@@ -35,11 +35,23 @@ export default function EMATrendPage() {
       setLoading(true);
       const { data, error } = await supabase
         .from('strategy_9_30_ema')
-        .select('*')
-        .order('crossover_5min', { ascending: false });
+        .select('*');
 
       if (error) throw error;
-      setStrategyData(data || []);
+      
+      // Sort the data manually: non-null values first (descending), then null values
+      const sortedData = (data || []).sort((a, b) => {
+        // If both are null, maintain original order
+        if (!a.crossover_5min && !b.crossover_5min) return 0;
+        // If a is null, put it at the bottom
+        if (!a.crossover_5min) return 1;
+        // If b is null, put it at the bottom
+        if (!b.crossover_5min) return -1;
+        // Both are non-null, sort in descending order
+        return new Date(b.crossover_5min).getTime() - new Date(a.crossover_5min).getTime();
+      });
+      
+      setStrategyData(sortedData);
     } catch (err: any) {
       setError(err.message);
     } finally {

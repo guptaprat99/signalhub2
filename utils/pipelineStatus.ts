@@ -12,20 +12,28 @@ export interface PipelineStatus {
 
 export async function getPipelineStatus(): Promise<PipelineStatus> {
   try {
-    // Get the latest run timestamp from processing_state table for the pipeline function
+    // Get the latest OHLC data timestamp instead of pipeline timestamp
     const { data, error } = await supabase
+      .from('ohlc_data')
+      .select('timestamp')
+      .order('timestamp', { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+    
+    const lastRunAt = data && data.length > 0 ? data[0].timestamp : null;
+    
+    // For isRunning status, we still need to check the pipeline status
+    const { data: pipelineData, error: pipelineError } = await supabase
       .from('processing_state')
-      .select('last_run_at, status')
+      .select('status')
       .eq('function_name', 'pipeline')
       .eq('stock_id', 0)
       .eq('timeframe', 'global')
       .order('last_run_at', { ascending: false })
       .limit(1);
 
-    if (error) throw error;
-    
-    const lastRunAt = data && data.length > 0 ? data[0].last_run_at : null;
-    const isRunning = data && data.length > 0 ? data[0].status === 'processing' : false;
+    const isRunning = !pipelineError && pipelineData && pipelineData.length > 0 ? pipelineData[0].status === 'processing' : false;
     
     return {
       lastRunAt,

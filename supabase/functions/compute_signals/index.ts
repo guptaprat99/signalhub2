@@ -4,9 +4,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { 
   getStockTimeframePairs, 
-  getNewCandlesSinceLastProcessed, 
-  updateProcessingState,
-  validateProcessingState 
+  getCandlesSinceTimestamp,
+  getPipelineLastProcessedTimestamp
 } from "../shared/processing_state.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -38,14 +37,17 @@ function computeEMA(closes: number[], period: number): number | null {
 }
 
 // Process a single stock/timeframe pair with all indicators
-async function processStockTimeframe(pair: any, emaIndicators: any[]) {
+async function processStockTimeframe(pair: any, emaIndicators: any[], lastProcessedTimestamp: string) {
   const { stock_id, timeframe } = pair;
   
   try {
     console.log(`Processing stock_id: ${stock_id}, timeframe: ${timeframe}`);
     
-    // Get new candles since last processed for this stock/timeframe
-    const newCandles = await getNewCandlesSinceLastProcessed('compute_signals', stock_id, timeframe);
+    // Get new candles since last pipeline run for this stock/timeframe
+    const allNewCandles = await getCandlesSinceTimestamp(lastProcessedTimestamp);
+    const newCandles = allNewCandles.filter((candle: any) => 
+      candle.stock_id === stock_id && candle.timeframe === timeframe
+    );
     
     if (newCandles.length === 0) {
       console.log(`No new data for ${stock_id}/${timeframe}, skipping`);
@@ -98,49 +100,27 @@ async function processStockTimeframe(pair: any, emaIndicators: any[]) {
         for (let i = 0; i < newSignals.length; i += 100) {
           const chunk = newSignals.slice(i, i + 100);
           const upsertRes = await supabaseFetch(
-            `signals?on_conflict=stock_id,indicator_id,timeframe,timestamp`,
+            "signals?on_conflict=stock_id,indicator_id,timeframe,timestamp",
             {
               method: "POST",
               body: JSON.stringify(chunk),
             }
           );
+          
           if (!upsertRes.ok) {
-            const err = await upsertRes.text();
-            errors.push({ indicator_id: indicator.id, error: err });
+            console.error(`Failed to upsert signals for indicator ${indicator.id}: ${upsertRes.status}`);
+            errors.push(`Failed to upsert signals for indicator ${indicator.id}`);
           } else {
             totalSignals += chunk.length;
           }
         }
-
-        // Prune old signals (keep only latest 50)
-        const signalsRes = await supabaseFetch(
-          `signals?stock_id=eq.${stock_id}&indicator_id=eq.${indicator.id}&timeframe=eq.${timeframe}&select=timestamp&order=timestamp.desc`
-        );
-        if (signalsRes.ok) {
-          const allSignals = await signalsRes.json();
-          if (Array.isArray(allSignals) && allSignals.length > 50) {
-            const timestampsToDelete = allSignals.slice(50).map((r: any) => r.timestamp);
-            for (let i = 0; i < timestampsToDelete.length; i += 100) {
-              const chunk = timestampsToDelete.slice(i, i + 100);
-              const orClause = chunk.map((ts: string) => `timestamp.eq.${encodeURIComponent(ts)}`).join(",");
-              await supabaseFetch(
-                `signals?stock_id=eq.${stock_id}&indicator_id=eq.${indicator.id}&timeframe=eq.${timeframe}&or=(${orClause})`,
-                { method: "DELETE" }
-              );
-            }
-          }
-        }
+        
+        console.log(`Processed ${newSignals.length} signals for indicator ${indicator.id} (${stock_id}/${timeframe})`);
+        
       } catch (indicatorError: any) {
         console.error(`Error processing indicator ${indicator.id} for ${stock_id}/${timeframe}: ${indicatorError.message}`);
-        errors.push({ indicator_id: indicator.id, error: indicatorError.message });
+        errors.push(`Indicator ${indicator.id}: ${indicatorError.message}`);
       }
-    }
-
-    // Update processing state with the latest timestamp
-    if (newCandles.length > 0) {
-      const latestTimestamp = newCandles[newCandles.length - 1].timestamp;
-      await updateProcessingState('compute_signals', stock_id, timeframe, latestTimestamp);
-      console.log(`Updated processing state for ${stock_id}/${timeframe} to ${latestTimestamp}`);
     }
 
     return { 
@@ -158,7 +138,11 @@ async function processStockTimeframe(pair: any, emaIndicators: any[]) {
 
 serve(async (_req) => {
   try {
-    console.log("Starting compute_signals with delta processing and parallel execution...");
+    console.log("Starting compute_signals with pipeline-based delta processing...");
+    
+    // Get the pipeline's last processed timestamp (single source of truth)
+    const lastProcessedTimestamp = await getPipelineLastProcessedTimestamp();
+    console.log(`Using pipeline's last processed timestamp: ${lastProcessedTimestamp}`);
     
     // 1. Fetch all active EMA indicators
     const indicatorsRes = await supabaseFetch(
@@ -203,7 +187,7 @@ serve(async (_req) => {
       console.log(`Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(pairs.length/batchSize)}: ${batch.length} pairs`);
       
       // Process batch in parallel
-      const batchPromises = batch.map(pair => processStockTimeframe(pair, emaIndicators));
+      const batchPromises = batch.map(pair => processStockTimeframe(pair, emaIndicators, lastProcessedTimestamp));
       const batchResults = await Promise.all(batchPromises);
       
       // Process results

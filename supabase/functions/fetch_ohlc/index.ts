@@ -5,9 +5,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { fetchOHLC } from "../../../utils/fetchOHLC.ts";
 import { 
   getStockTimeframePairs, 
-  getNewCandlesSinceLastProcessed, 
-  updateProcessingState,
-  validateProcessingState 
+  getPipelineLastProcessedTimestamp
 } from "../shared/processing_state.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -72,15 +70,18 @@ function getFromDateForNCandles(nCandles, interval, holidays = []) {
   return fromDate;
 }
 
-function getToDateIST() {
-  // Today at 15:30:00 IST in 'YYYY-MM-DD HH:mm:ss' format
+function getCurrentTimeIST() {
+  // Current time in IST in 'YYYY-MM-DD HH:mm:ss' format
   const now = new Date();
   // Convert to IST
   const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
   const yyyy = ist.getUTCFullYear();
   const mm = String(ist.getUTCMonth() + 1).padStart(2, '0');
   const dd = String(ist.getUTCDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd} 15:30:00`;
+  const hh = String(ist.getUTCHours()).padStart(2, '0');
+  const min = String(ist.getUTCMinutes()).padStart(2, '0');
+  const ss = String(ist.getUTCSeconds()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
 }
 
 // Helper to sleep for rate limiting
@@ -88,8 +89,45 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Helper: Calculate fromDate based on last OHLC timestamp or fallback to 210 candles
+function calculateFromDate(lastOHLCTimestamp: string, interval: string, holidays: string[] = []): string {
+  if (!lastOHLCTimestamp || lastOHLCTimestamp === '1970-01-01') {
+    // No previous data, fallback to 210 candles
+    return getFromDateForNCandles(210, interval, holidays);
+  }
+
+  const lastTimestamp = new Date(lastOHLCTimestamp);
+  const now = new Date();
+  const timeDiffMs = now.getTime() - lastTimestamp.getTime();
+  const timeDiffMinutes = timeDiffMs / (1000 * 60);
+
+  // Calculate how many candles we need based on time difference
+  const candlesPerDay = CANDLES_PER_DAY[interval];
+  const minutesPerCandle = interval === "5" ? 5 : 60;
+  const candlesNeeded = Math.ceil(timeDiffMinutes / minutesPerCandle);
+
+  if (candlesNeeded > 210) {
+    // Gap is too large, fallback to 210 candles
+    console.log(`Large gap detected (${candlesNeeded} candles needed), using 210 candle fallback`);
+    return getFromDateForNCandles(210, interval, holidays);
+  }
+
+  // Use the last timestamp as fromDate (add 1 minute to avoid overlap)
+  const fromDate = new Date(lastTimestamp.getTime() + 60000); // Add 1 minute
+  const istFromDate = new Date(fromDate.getTime() + 5.5 * 60 * 60 * 1000); // Convert to IST
+  
+  const yyyy = istFromDate.getUTCFullYear();
+  const mm = String(istFromDate.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(istFromDate.getUTCDate()).padStart(2, '0');
+  const hh = String(istFromDate.getUTCHours()).padStart(2, '0');
+  const min = String(istFromDate.getUTCMinutes()).padStart(2, '0');
+  const ss = String(istFromDate.getUTCSeconds()).padStart(2, '0');
+
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+}
+
 // Process a single stock with all its timeframes
-async function processStock(stock: any, intervals: string[], nCandles: number, holidays: string[]) {
+async function processStock(stock: any, intervals: string[], nCandles: number, holidays: string[], lastProcessedTimestamp: string) {
   const results = [];
   
   // Skip stocks with missing required fields
@@ -102,135 +140,104 @@ async function processStock(stock: any, intervals: string[], nCandles: number, h
     
     for (const interval of intervals) {
       try {
-        // Check if we need to fetch new data for this stock/timeframe
-        const existingCandles = await getNewCandlesSinceLastProcessed('fetch_ohlc', stock.id, interval, nCandles);
+        // Get the last OHLC timestamp for this stock/timeframe
+        const lastOHLCRes = await supabaseFetch(
+          `ohlc_data?stock_id=eq.${stock.id}&timeframe=eq.${interval}&order=timestamp.desc&limit=1&select=timestamp`
+        );
         
-        if (existingCandles.length >= 2) {
-          // We have recent data, check if we need to fetch more
-          const latestTimestamp = existingCandles[existingCandles.length - 1].timestamp;
-          const latestTime = new Date(latestTimestamp);
-          const now = new Date();
-          const timeDiff = now.getTime() - latestTime.getTime();
-          
-          // If latest data is less than 10 minutes old, skip fetching
-          if (timeDiff < 10 * 60 * 1000) {
-            console.log(`Skipping ${stock.id}/${interval}: Recent data available (${Math.round(timeDiff/60000)} minutes old)`);
+        let lastOHLCTimestamp = '1970-01-01';
+        if (lastOHLCRes.ok) {
+          const lastOHLCData = await lastOHLCRes.json();
+          if (lastOHLCData.length > 0) {
+            lastOHLCTimestamp = lastOHLCData[0].timestamp;
+            console.log(`Last OHLC timestamp for ${stock.id}/${interval}: ${lastOHLCTimestamp}`);
+          }
+        }
+
+        // Check if we need to fetch new data for this stock/timeframe
+        // Get existing candles since last pipeline run
+        const existingCandlesRes = await supabaseFetch(
+          `ohlc_data?stock_id=eq.${stock.id}&timeframe=eq.${interval}&timestamp=gt.${encodeURIComponent(lastProcessedTimestamp)}&order=timestamp.desc&limit=1`
+        );
+        
+        // If we have recent data since last pipeline run, skip fetching
+        if (existingCandlesRes.ok) {
+          const existingCandles = await existingCandlesRes.json();
+          if (existingCandles.length > 0) {
+            console.log(`Skipping ${stock.id}/${interval}: Data already exists since last pipeline run`);
+            results.push({ interval, skipped: true, reason: "Data already exists since last pipeline run" });
             continue;
           }
         }
         
         console.log(`Fetching new data for ${stock.id}/${interval}`);
         
-        // Calculate fromDate for exactly nCandles (skipping weekends/holidays)
-        const fromDate = getFromDateForNCandles(nCandles, interval, holidays);
-        const toDate = getToDateIST();
-        const tradingDays = getLastNTradingDays(Math.ceil(nCandles / CANDLES_PER_DAY[interval]), holidays);
+        // Calculate fromDate based on last OHLC timestamp or fallback to 210 candles
+        const fromDate = calculateFromDate(lastOHLCTimestamp, interval, holidays);
+        const toDate = getCurrentTimeIST();
+        
+        console.log(`Dhan API call for ${stock.id}/${interval}: fromDate=${fromDate}, toDate=${toDate}`);
 
         // Fetch candles from Dhan
-        const candles = await fetchOHLC({
-          dhanToken: DHAN_API_TOKEN,
-          securityId: stock.security_id,
-          exchangeSegment: stock.exchange_segment,
-          instrument: stock.instrument,
+        const candles = await fetchOHLC(
+          stock.security_id,
+          stock.exchange_segment,
+          stock.instrument,
           interval,
           fromDate,
-          toDate,
-        });
+          toDate
+        );
 
-        if (!Array.isArray(candles) || candles.length === 0) {
-          results.push({ stock_id: stock.id, interval, error: "No candles returned" });
+        if (!candles || candles.length === 0) {
+          console.log(`No candles fetched for ${stock.id}/${interval}`);
+          results.push({ interval, candles: 0, error: "No data from API" });
           continue;
         }
 
-        // Only keep candles within market hours (9:15-15:30 IST) and on trading days
-        const filteredCandles = candles.filter((candle) => {
-          // candle.timestamp is UNIX seconds (UTC)
-          const date = new Date(candle.timestamp * 1000);
-          // Convert to IST
-          const ist = new Date(date.getTime() + 5.5 * 60 * 60 * 1000);
-          const dateStr = ist.toISOString().slice(0, 10);
-          if (!tradingDays.includes(dateStr)) return false;
-          const hour = ist.getUTCHours();
-          const min = ist.getUTCMinutes();
-          // Market open: 9:15, close: 15:30 IST
-          const openMinutes = 9 * 60 + 15;
-          const closeMinutes = 15 * 60 + 30;
-          const istMinutes = hour * 60 + min;
-          return istMinutes >= openMinutes && istMinutes <= closeMinutes;
-        });
-
-        // Sort by timestamp ascending, then take last nCandles
-        const lastCandles = filteredCandles.sort((a, b) => a.timestamp - b.timestamp).slice(-nCandles);
-
-        if (lastCandles.length === 0) {
-          results.push({ stock_id: stock.id, interval, error: "No valid candles after filtering" });
-          continue;
-        }
-
-        // Prepare data for upsert
-        const rows = lastCandles.map((candle) => ({
+        // Transform candles to match database schema
+        const transformedCandles = candles.map((candle: any) => ({
           stock_id: stock.id,
-          // Store as UTC ISO string (no offset)
-          timestamp: new Date(candle.timestamp * 1000).toISOString(),
+          timeframe: interval,
+          timestamp: candle.timestamp,
           open: candle.open,
           high: candle.high,
           low: candle.low,
           close: candle.close,
-          volume: candle.volume,
-          timeframe: interval,
+          volume: candle.volume || 0,
         }));
 
-        // Upsert into ohlc_data (deduplicate on stock_id+timestamp+timeframe)
-        const upsertRes = await supabaseFetch("ohlc_data?on_conflict=stock_id,timestamp,timeframe", {
-          method: "POST",
-          body: JSON.stringify(rows),
-        });
-        if (!upsertRes.ok) {
-          const err = await upsertRes.text();
-          results.push({ stock_id: stock.id, interval, error: err });
-        } else {
-          console.log(`Upserted ${rows.length} candles for ${stock.id}/${interval}`);
-          results.push({ stock_id: stock.id, interval, candles: rows.length });
-        }
-
-        // Guarantee only the most recent nCandles remain for this stock/interval
-        // 1. Fetch all timestamps for this stock/interval, sorted descending
-        const fetchTimestampsRes = await supabaseFetch(
-          `ohlc_data?stock_id=eq.${stock.id}&timeframe=eq.${interval}&select=timestamp&order=timestamp.desc`,
-          { method: "GET" }
-        );
-        if (fetchTimestampsRes.ok) {
-          const allRows = await fetchTimestampsRes.json();
-          if (Array.isArray(allRows) && allRows.length > nCandles) {
-            // Collect timestamps to delete (older than the 210th most recent)
-            const timestampsToDelete = allRows.slice(nCandles).map(r => r.timestamp);
-            // Batch delete (in chunks of 100 for URL length safety)
-            for (let i = 0; i < timestampsToDelete.length; i += 100) {
-              const chunk = timestampsToDelete.slice(i, i + 100);
-              const orClause = chunk.map(ts => `timestamp.eq.${encodeURIComponent(ts)}`).join(",");
-              await supabaseFetch(
-                `ohlc_data?stock_id=eq.${stock.id}&timeframe=eq.${interval}&or=(${orClause})`,
-                { method: "DELETE" }
-              );
+        // Batch upsert candles (in chunks of 100)
+        let totalCandles = 0;
+        for (let i = 0; i < transformedCandles.length; i += 100) {
+          const chunk = transformedCandles.slice(i, i + 100);
+          const upsertRes = await supabaseFetch(
+            "ohlc_data?on_conflict=stock_id,timeframe,timestamp",
+            {
+              method: "POST",
+              body: JSON.stringify(chunk),
             }
+          );
+          
+          if (!upsertRes.ok) {
+            console.error(`Failed to upsert candles for ${stock.id}/${interval}: ${upsertRes.status}`);
+            results.push({ interval, error: `Failed to upsert: ${upsertRes.status}` });
+            break;
+          } else {
+            totalCandles += chunk.length;
           }
         }
 
-        // Update processing state with the latest timestamp
-        if (lastCandles.length > 0) {
-          const latestTimestamp = new Date(lastCandles[lastCandles.length - 1].timestamp * 1000).toISOString();
-          await updateProcessingState('fetch_ohlc', stock.id, interval, latestTimestamp);
-          console.log(`Updated processing state for ${stock.id}/${interval} to ${latestTimestamp}`);
-        }
+        console.log(`Successfully processed ${totalCandles} candles for ${stock.id}/${interval}`);
+        results.push({ interval, candles: totalCandles });
 
       } catch (intervalError: any) {
         console.error(`Error processing ${stock.id}/${interval}: ${intervalError.message}`);
-        results.push({ stock_id: stock.id, interval, error: intervalError.message });
+        results.push({ interval, error: intervalError.message });
       }
     }
-    
+
     return { stock_id: stock.id, results };
-    
+
   } catch (stockError: any) {
     console.error(`Error processing stock ${stock.id}: ${stockError.message}`);
     return { stock_id: stock.id, error: stockError.message };
@@ -251,7 +258,11 @@ serve(async (req) => {
   }
 
   try {
-    console.log("Starting fetch_ohlc with delta processing and parallel execution...");
+    console.log("Starting fetch_ohlc with pipeline-based delta processing...");
+    
+    // Get the pipeline's last processed timestamp (single source of truth)
+    const lastProcessedTimestamp = await getPipelineLastProcessedTimestamp();
+    console.log(`Using pipeline's last processed timestamp: ${lastProcessedTimestamp}`);
     
     // 1. Fetch all active stocks with required fields
     const stocksRes = await supabaseFetch("stocks?select=id,security_id,exchange_segment,instrument,is_active&is_active=eq.true");
@@ -281,7 +292,7 @@ serve(async (req) => {
       console.log(`Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(stocks.length/batchSize)}: ${batch.length} stocks`);
       
       // Process batch in parallel
-      const batchPromises = batch.map(stock => processStock(stock, intervals, nCandles, holidays));
+      const batchPromises = batch.map(stock => processStock(stock, intervals, nCandles, holidays, lastProcessedTimestamp));
       const batchResults = await Promise.all(batchPromises);
       
       // Process results

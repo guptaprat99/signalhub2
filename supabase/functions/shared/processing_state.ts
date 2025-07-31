@@ -160,3 +160,35 @@ export async function getStockTimeframePairs() {
   
   return pairs;
 } 
+
+// Get candles since a specific timestamp (for all functions to use pipeline's timestamp)
+export async function getCandlesSinceTimestamp(
+  timestamp: string,
+  maxCandles: number = 210
+) {
+  // Get all candles since the specified timestamp
+  const res = await supabaseFetch(
+    `ohlc_data?timestamp=gt.${encodeURIComponent(timestamp)}&order=timestamp.asc&select=*`
+  );
+  
+  if (!res.ok) {
+    console.error(`Failed to get candles since timestamp ${timestamp}`);
+    return [];
+  }
+  
+  const allCandles = await res.json();
+  
+  if (allCandles.length > maxCandles) {
+    // Large gap detected - only process the most recent candles
+    console.log(`Large gap detected: ${allCandles.length} candles since ${timestamp}, processing only last ${maxCandles}`);
+    return allCandles.slice(-maxCandles);
+  }
+  
+  return allCandles;
+}
+
+// Get the pipeline's last processed timestamp (single source of truth)
+export async function getPipelineLastProcessedTimestamp(): Promise<string> {
+  const state = await getProcessingState('pipeline', 0, 'global');
+  return state?.last_processed_timestamp || '1970-01-01';
+} 
